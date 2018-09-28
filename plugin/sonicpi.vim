@@ -43,7 +43,7 @@ endfunction
 augroup sonicpi
   autocmd!
   autocmd BufNewFile,BufReadPost *.rb call sonicpi#detect()
-  autocmd FileType           ruby call sonicpi#detect()
+  autocmd FileType ruby call sonicpi#detect()
   " Not entirely sure this one will be helpful...
   autocmd VimEnter * if expand('<amatch>')=='\v*.rb'|endif
 augroup END
@@ -59,12 +59,6 @@ function! s:load_autocomplete()
   endif
 endfunction
 
-" Set keymaps
-function! s:load_keymaps()
-  nnoremap <buffer> <silent> <leader>r :exe "silent w !".g:sonicpi_command<CR>
-  vnoremap <silent> <buffer> <leader>r :<C-U>exe "silent '<,'> w !".g:sonicpi_command<CR>
-  nnoremap <buffer> <silent> <leader>S :call system(g:sonicpi_command." stop")<CR>
-endfunction
 
 " Extend Ruby syntax to include Sonic Pi terms
 function! s:load_syntax()
@@ -72,11 +66,15 @@ function! s:load_syntax()
 endfunction
 
 function! s:SonicPiSendBuffer()
-  execute "silent w !" . g:sonicpi_command . " " . g:sonicpi_send
+  silent execute "w !" . g:sonicpi_command . " " . g:sonicpi_send
+endfunction
+
+function! s:SonicPiSendSelection() range
+  silent execute a:firstline . "," . a:lastline . "w !" . g:sonicpi_command
 endfunction
 
 function! s:SonicPiStop()
-  execute "silent !" . g:sonicpi_command . " " . g:sonicpi_stop
+  silent execute "!" . g:sonicpi_command . " " . g:sonicpi_stop
   if g:vim_redraw
     execute ":redraw!"
   endif
@@ -84,10 +82,12 @@ endfunction
 
 " Export public API
 command! -nargs=0 SonicPiSendBuffer call s:SonicPiSendBuffer()
+command! -nargs=0 -range SonicPiSendSelection <line1>,<line2> call s:SonicPiSendSelection()
 command! -nargs=0 SonicPiStop call s:SonicPiStop()
 
-" Set keymaps in Normal mode
+" Set keymaps
 function! s:load_keymaps()
   nnoremap <leader>r :SonicPiSendBuffer<CR>
+  vnoremap <leader>r :SonicPiSendSelection<CR>
   nnoremap <leader>S :SonicPiStop<CR>
 endfunction
