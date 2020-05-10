@@ -8,7 +8,7 @@ if !exists('g:sonicpi_command')
 endif
 
 if !exists('g:sonicpi_send')
-  let g:sonicpi_send = ''
+  let g:sonicpi_send = 'eval-stdin'
 endif
 
 if !exists('g:sonicpi_stop')
@@ -69,8 +69,16 @@ function! s:SonicPiSendBuffer()
   silent execute "w !" . g:sonicpi_command . " " . g:sonicpi_send
 endfunction
 
+function! s:SonicPiSendLine()
+  silent execute ".w !" . g:sonicpi_command . " " . g:sonicpi_send
+endfunction
+
 function! s:SonicPiSendSelection() range
-  silent execute a:firstline . "," . a:lastline . "w !" . g:sonicpi_command
+  silent execute a:firstline . "," . a:lastline . "w !" . g:sonicpi_command . " " . g:sonicpi_send
+endfunction
+
+function! SonicPiSendOp(type)
+  silent execute "'[,']w !" . g:sonicpi_command . " " . g:sonicpi_send
 endfunction
 
 function! s:SonicPiStop()
@@ -82,6 +90,7 @@ endfunction
 
 " Export public API
 command! -nargs=0 SonicPiSendBuffer call s:SonicPiSendBuffer()
+command! -nargs=0 SonicPiSendLine call s:SonicPiSendLine()
 command! -nargs=0 -range SonicPiSendSelection <line1>,<line2> call s:SonicPiSendSelection()
 command! -nargs=0 SonicPiStop call s:SonicPiStop()
 
@@ -89,5 +98,7 @@ command! -nargs=0 SonicPiStop call s:SonicPiStop()
 function! s:load_keymaps()
   nnoremap <leader>r :SonicPiSendBuffer<CR>
   vnoremap <leader>r :SonicPiSendSelection<CR>
+  nnoremap <leader>R <Esc>:set opfunc=s:SonicPiSendOp<CR>g@
+  nnoremap <leader>l :SonicPiSendLine<CR>
   nnoremap <leader>S :SonicPiStop<CR>
 endfunction
